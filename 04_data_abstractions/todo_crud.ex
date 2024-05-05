@@ -41,3 +41,22 @@ defmodule TodoList do
     %TodoList{todo_list | entries: new_entries}
   end
 end
+
+defmodule TodoList.CsvImporter do
+  def entries_from_csv!(path) do
+    entries = get_entries!(path)
+    TodoList.new(entries)
+  end
+
+  defp get_entries!(path) do
+    File.stream!(path)
+    |> Stream.map(&String.trim_trailing(&1, "\n"))
+    |> Stream.map(&String.split(&1, ","))
+    |> Stream.map(&create_entry(&1))
+  end
+
+  defp create_entry([dateStr, title]) do
+    {:ok, date} = Date.from_iso8601(dateStr)
+    %{date: date, title: title}
+  end
+end

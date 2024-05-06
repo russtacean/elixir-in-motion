@@ -16,6 +16,14 @@ defmodule TodoServer do
     TodoList.add_entry(todo_list, new_entry)
   end
 
+  defp process_message(todo_list, {:delete_entry, entry_id}) do
+    TodoList.delete_entry(todo_list, entry_id)
+  end
+
+  defp process_message(todo_list, {:update_entry, entry_id, updater_fn}) do
+    TodoList.update_entry(todo_list, entry_id, updater_fn)
+  end
+
   defp process_message(todo_list, {:entries, caller_pid, date}) do
     send(caller_pid, {:todo_entries, TodoList.entries(todo_list, date)})
     todo_list
@@ -23,6 +31,14 @@ defmodule TodoServer do
 
   def add_entry(todo_server, new_entry) do
     send(todo_server, {:add_entry, new_entry})
+  end
+
+  def delete_entry(todo_server, entry_id) do
+    send(todo_server, {:delete_entry, entry_id})
+  end
+
+  def update_entry(todo_server, entry_id, updater_fn) do
+    send(todo_server, {:update_entry, entry_id, updater_fn})
   end
 
   def entries(todo_server, date) do

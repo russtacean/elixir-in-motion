@@ -30,6 +30,20 @@ defmodule ServerProcess do
 end
 
 defmodule KeyValueStore do
+  #### Interface functions ####
+  def start do
+    ServerProcess.start(KeyValueStore)
+  end
+
+  def put(pid, key, value) do
+    ServerProcess.call(pid, {:put, key, value})
+  end
+
+  def get(pid, key) do
+    ServerProcess.call(pid, {:get, key})
+  end
+
+  #### Callback functions ####
   def init do
     %{}
   end

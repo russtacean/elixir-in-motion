@@ -30,6 +30,11 @@ defmodule TodoServer do
     todo_list
   end
 
+  defp process_message(todo_list, invalid_message) do
+    IO.puts("unknown message: #{inspect(invalid_message)}")
+    todo_list
+  end
+
   def add_entry(new_entry) do
     send(:todo, {:add_entry, new_entry})
   end

@@ -51,11 +51,3 @@ defmodule Calculator do
   def mul(server_pid, value), do: send(server_pid, {:mul, value})
   def div(server_pid, value), do: send(server_pid, {:div, value})
 end
-
-calculator_pid = Calculator.start()
-Calculator.value(calculator_pid)
-Calculator.add(calculator_pid, 10)
-Calculator.sub(calculator_pid, 5)
-Calculator.mul(calculator_pid, 3)
-Calculator.div(calculator_pid, 5)
-Calculator.value(calculator_pid)

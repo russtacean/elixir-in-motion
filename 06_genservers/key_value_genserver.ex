@@ -13,14 +13,17 @@ defmodule KeyValueStore do
     GenServer.call(pid, {:get, key})
   end
 
+  @impl GenServer
   def init(_init_arg) do
     {:ok, %{}}
   end
 
+  @impl GenServer
   def handle_cast({:put, key, value}, state) do
     {:noreply, Map.put(state, key, value)}
   end
 
+  @impl GenServer
   def handle_call({:get, key}, _from, state) do
     {:reply, Map.get(state, key), state}
   end

@@ -1,46 +1,52 @@
-# Implementation of chapter 5 todo_server using generic server process from server_process.ex
+# Implementation of chapter 5 todo_server using genserver
 # Multiple modules in the same file for now, will learn to use mix in Chap 7
-defmodule ServerProcess do
-  def start(callback_module) do
-    spawn(fn ->
-      initial_state = callback_module.init()
-      loop(callback_module, initial_state)
-    end)
+defmodule TodoServer do
+  use GenServer
+
+  def start do
+    GenServer.start(__MODULE__, nil, name: __MODULE__)
   end
 
-  defp loop(callback_module, current_state) do
-    receive do
-      {:call, request, caller} ->
-        {response, new_state} =
-          callback_module.handle_call(
-            request,
-            current_state
-          )
-
-        send(caller, {:response, response})
-        loop(callback_module, new_state)
-
-      {:cast, request} ->
-        new_state =
-          callback_module.handle_cast(
-            request,
-            current_state
-          )
-
-        loop(callback_module, new_state)
-    end
+  def add_entry(new_entry) do
+    GenServer.cast(__MODULE__, {:add_entry, new_entry})
   end
 
-  def call(server_pid, request) do
-    send(server_pid, {:call, request, self()})
-
-    receive do
-      {:response, response} -> response
-    end
+  def delete_entry(entry_id) do
+    GenServer.cast(__MODULE__, {:delete_entry, entry_id})
   end
 
-  def cast(server_pid, request) do
-    send(server_pid, {:cast, request})
+  def update_entry(entry_id, update_fn) do
+    GenServer.cast(__MODULE__, {:delete_entry, entry_id, update_fn})
+  end
+
+  def entries(date) do
+    GenServer.call(__MODULE__, {:entries, date})
+  end
+
+  #### Callback Functions ####
+  @impl GenServer
+  def init(_) do
+    {:ok, TodoList.new()}
+  end
+
+  @impl GenServer
+  def handle_cast({:add_entry, new_entry}, curr_todo_list) do
+    {:noreply, TodoList.add_entry(curr_todo_list, new_entry)}
+  end
+
+  @impl GenServer
+  def handle_cast({:delete_entry, entry_id}, curr_todo_list) do
+    {:noreply, TodoList.delete_entry(curr_todo_list, entry_id)}
+  end
+
+  @impl GenServer
+  def handle_cast({:update_entry, entry_id, update_fn}, curr_todo_list) do
+    {:noreply, TodoList.update_entry(curr_todo_list, entry_id, update_fn)}
+  end
+
+  @impl GenServer
+  def handle_call({:entries, date}, _from, curr_todo_list) do
+    {:reply, TodoList.entries(curr_todo_list, date), curr_todo_list}
   end
 end
 
@@ -85,50 +91,5 @@ defmodule TodoList do
   def delete_entry(todo_list, entry_id) do
     new_entries = Map.delete(todo_list.entries, entry_id)
     %TodoList{todo_list | entries: new_entries}
-  end
-end
-
-# NEW CODE HERE
-defmodule TodoServer do
-  #### Interface Functions ####
-  def start do
-    ServerProcess.start(TodoServer)
-  end
-
-  def add_entry(pid, new_entry) do
-    ServerProcess.cast(pid, {:add_entry, new_entry})
-  end
-
-  def delete_entry(pid, entry_id) do
-    ServerProcess.cast(pid, {:delete_entry, entry_id})
-  end
-
-  def update_entry(pid, entry_id, update_fn) do
-    ServerProcess.cast(pid, {:delete_entry, entry_id, update_fn})
-  end
-
-  def entries(pid, date) do
-    ServerProcess.call(pid, {:entries, date})
-  end
-
-  #### Callback Functions ####
-  def init do
-    TodoList.new()
-  end
-
-  def handle_cast({:add_entry, new_entry}, curr_todo_list) do
-    TodoList.add_entry(curr_todo_list, new_entry)
-  end
-
-  def handle_cast({:delete_entry, entry_id}, curr_todo_list) do
-    TodoList.delete_entry(curr_todo_list, entry_id)
-  end
-
-  def handle_cast({:update_entry, entry_id, update_fn}, curr_todo_list) do
-    TodoList.update_entry(curr_todo_list, entry_id, update_fn)
-  end
-
-  def handle_call({:entries, date}, curr_todo_list) do
-    {TodoList.entries(curr_todo_list, date), curr_todo_list}
   end
 end

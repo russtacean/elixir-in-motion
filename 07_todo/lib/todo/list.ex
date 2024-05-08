@@ -40,4 +40,8 @@ defmodule Todo.List do
     new_entries = Map.delete(todo_list.entries, entry_id)
     %Todo.List{todo_list | entries: new_entries}
   end
+
+  def size(todo_list) do
+    map_size(todo_list.entries)
+  end
 end

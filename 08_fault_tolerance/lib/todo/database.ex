@@ -25,6 +25,7 @@ defmodule Todo.Database do
 
   @impl GenServer
   def init(_) do
+    IO.puts("Starting database server.")
     File.mkdir_p!(@db_folder)
     worker_map = init_workers()
     {:ok, worker_map}

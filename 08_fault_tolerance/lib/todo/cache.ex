@@ -13,7 +13,7 @@ defmodule Todo.Cache do
   @impl GenServer
   def init(_) do
     IO.puts("Starting to-do cache.")
-    Todo.Database.start()
+    Todo.Database.start_link()
     {:ok, %{}}
   end
 
@@ -24,7 +24,7 @@ defmodule Todo.Cache do
         {:reply, todo_server, todo_servers}
 
       :error ->
-        {:ok, new_server} = Todo.Server.start(todo_list_name)
+        {:ok, new_server} = Todo.Server.start_link(todo_list_name)
 
         {
           :reply,

@@ -1,9 +1,9 @@
 defmodule Todo.Database do
-  @db_folder "./persist"
-
   # No longer implementing GenServer, so we have to define this explicitly
   def child_spec(_) do
-    File.mkdir_p!(@db_folder)
+    db_settings = Application.fetch_env!(:todo, :database)
+    db_folder = Keyword.fetch!(db_settings, :db_folder)
+    File.mkdir_p!(db_folder)
 
     :poolboy.child_spec(
       __MODULE__,
@@ -12,7 +12,7 @@ defmodule Todo.Database do
         worker_module: Todo.DatabaseWorker,
         size: 3
       ],
-      [@db_folder]
+      [db_folder]
     )
   end
 

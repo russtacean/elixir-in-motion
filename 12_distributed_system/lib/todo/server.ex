@@ -7,11 +7,19 @@ defmodule Todo.Server do
   @expiry_idle_timeout :timer.seconds(10)
 
   def start_link(name) do
-    GenServer.start_link(Todo.Server, name, name: via_tuple(name))
+    GenServer.start_link(Todo.Server, name, name: global_name(name))
   end
 
-  defp via_tuple(name) do
-    Todo.ProcessRegistry.via_tuple({__MODULE__, name})
+  defp global_name(name) do
+    {:global, {__MODULE__, name}}
+  end
+
+  def whereis(name) do
+    # ETS lookup, quite fast compared to attempting global registration
+    case :global.whereis_name({__MODULE__, name}) do
+      :undefined -> nil
+      pid -> pid
+    end
   end
 
   def add_entry(todo_server, new_entry) do

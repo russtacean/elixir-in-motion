@@ -13,3 +13,11 @@ db_folder =
     else: System.get_env("TODO_TEST_DB_FOLDER", "./persist_test")
 
 config(:todo, :database, db_folder: db_folder)
+
+# Using a shorter to-do server expiry in local dev.
+todo_server_expiry =
+  if config_env() != :dev,
+    do: System.get_env("TODO_SERVER_EXPIRY", "60"),
+    else: System.get_env("TODO_SERVER_EXPIRY", "10")
+
+config :todo, todo_server_expiry: :timer.seconds(String.to_integer(todo_server_expiry))
